@@ -7,7 +7,8 @@
    <div>
     {% for led in arm %}
     <label class="radio-inline">
-      <input type="radio" id="radio{{led.led_id}}" name="led_{{ led.led_id }}" value="100">{{ led.led_id }}
+      <input type="radio" id="radio{{led.led_id}}" name="led_{{ led.led_id }}" value="100">
+      {{"%02d"|format(led.led_id) }}
     </label>
     {% endfor %}
   </div>
