@@ -2,6 +2,10 @@ from flask import (Flask, url_for, redirect)
 from flask import (render_template, request)
 from flask.ext.restful import (Resource, Api)
 
+from PyGlow import (PyGlow, ARM_LED_LIST)
+from time import sleep
+
+pyglow = PyGlow()
 
 app = Flask(__name__)
 app.config.from_envvar('PGS_SETTINGS', silent=True)
@@ -13,7 +17,15 @@ led_list = [{'led_id': i, 'brightness': 0} for i in range(0,20)]
 
 # interface to the h/w layer
 def set_led(num, brightness):
-    led_list[led_id]['brightness'] = v
+    led_list[num]['brightness'] = brightness
+    pyglow.led(num, brightness=brightness)
+#    pyglow.update_leds()
+
+def set_arm(num, brightness):
+    for i in ARM_LED_LIST[num-1]:
+        led_list[i]['brightness'] = brightness
+    pyglow.arm(num, brightness=brightness)
+#    pyglow.update_leds()
 
 class LedListAPI(Resource):
     def get(self):
@@ -29,11 +41,28 @@ class LedAPI(Resource):
         print request.form
         v = request.form['brightness']
         print 'value...', v
+        v = int(v)
         set_led(led_id, v)
         return led_list[led_id]
 
+class ArmAPI(Resource):
+    def get(self, arm_id):
+        return led_list
+
+    def put(self, arm_id):
+        print 'putting ARM...'
+        print request.form
+        v = request.form['brightness']
+        print 'value...', v
+        v = int(v)
+        set_arm(arm_id, v)
+        return led_list
+
 api.add_resource(LedAPI, '/leds/<int:led_id>')
 api.add_resource(LedListAPI, '/leds')
+
+api.add_resource(ArmAPI, '/arms/<int:arm_id>')
+# api.add_resource(LedListAPI, '/leds')
 
 @app.route('/')
 def show_control():
