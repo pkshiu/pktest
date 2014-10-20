@@ -27,8 +27,6 @@ def show_control():
 
 @app.route('/set_leds', methods=['POST', ])
 def set_leds():
-    for k,v in app.config.items():
-        print k, v
     ids = []
     for i in range(1, 19):
         v = request.form.get('led_%d' % i, 0)
@@ -39,6 +37,18 @@ def set_leds():
 
     return redirect(url_for('show_control'))
 
+
+@app.route('/set_arms', methods=['POST', ])
+def set_arms():
+    ids = []
+    for i in range(1, 3):
+        v = request.form.get('arm_%d' % i, 0)
+        data = {'brightness': v}
+        r = requests.put(make_url('/arms/%d', i), data=data)
+        print r
+        print i, v
+
+    return redirect(url_for('show_control'))
 
 if __name__ == '__main__':
     print led_list

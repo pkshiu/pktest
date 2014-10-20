@@ -65,11 +65,46 @@ def set_arm(num, brightness):
         pyglow.arm(num, brightness=brightness)
 
 
+# interface to the h/w layer
+def set_leds(set_list):
+    """
+    Set list of LED
+
+    :param set_list: is a list of (id, brightness)
+    """
+    global lock
+
+    # do this one at a time
+    with lock:
+        for num, b in set_list:
+            led_list[num]['brightness'] = b
+            pyglow.led(num, brightness=b)
+
+
 class LedListAPI(Resource):
     """
         REST interface to get the LED list.
     """
     def get(self):
+        return led_list
+
+    def put(self):
+        """
+        Accept JSON [ {id:n, brightness:b}, ...]
+        """
+        print 'LedList PUT'
+        print request.json
+        set_list = []
+        for d in request.json:
+            n = d['id']
+            v = d['brightness']
+            set_list.append((n, v))
+
+        # call set_led(led_id, v) but in a separate thread
+        h = threading.Thread(target=set_leds, args=(set_list,))
+        h.setDaemon(True)
+        h.start()
+
         return led_list
 
 
@@ -81,7 +116,7 @@ class LedAPI(Resource):
         return led_list[led_id]
 
     def put(self, led_id):
-        print 'putting...'
+        print 'Led PUT'
         print request.form
         v = request.form['brightness']
         print 'value...', v

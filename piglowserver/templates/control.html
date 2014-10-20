@@ -1,7 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h1>Control LEDs</h1>
+<h1>PiGlow Control</h1>
+
+<h2>Control LEDs</h2>
+<div>
 <form method="post" action="/set_leds">
 {% for arm in arm_list %}
    <div>
@@ -13,7 +16,30 @@
     {% endfor %}
   </div>
 {% endfor %}
+</div>
+<br />
+<div>
 <button type="submit" class="btn btn-primary">Update LEDs</button>
+</div>
 </form>
+
+
+<h2>Control Arms</h2>
+<form method="post" action="/set_arms">
+<div>
+{% for arm in [1,2,3] %}
+
+    <label class="radio-inline">
+      <input type="radio" id="radio{{arm}}" name="arm_{{ arm }}" value="100">
+      {{ arm }}
+    </label>
+{% endfor %}
+</div>
+<br />
+<div>
+<button type="submit" class="btn btn-primary">Update LEDs</button>
+</div>
+</form>
+
 {% endblock %}
 
