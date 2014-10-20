@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Control LEDs</h2>
+<ul>
+{% for led in led_list %}
+    <li>LED {{ led }} </li>
+{% endfor %}
+</ul>
+
+{% endblock %}
+
