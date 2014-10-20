@@ -1,12 +1,18 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2>Control LEDs</h2>
-<ul>
-{% for led in led_list %}
-    <li>LED {{ led }} </li>
+<h1>Control LEDs</h1>
+<form method="post" action="/set_leds">
+{% for arm in arm_list %}
+   <div>
+    {% for led in arm %}
+    <label class="radio-inline">
+      <input type="radio" id="radio{{led.led_id}}" name="led_{{ led.led_id }}" value="100">{{ led.led_id }}
+    </label>
+    {% endfor %}
+  </div>
 {% endfor %}
-</ul>
-
+<button type="submit" class="btn btn-primary">Update LEDs</button>
+</form>
 {% endblock %}
 
