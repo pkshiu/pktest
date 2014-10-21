@@ -150,7 +150,7 @@ class PiGlowResourceMixin(object):
 
     def validate_brightness(self, b):
         if b is None or not b in range(0, 256):
-            abort(404, message='brightness must be in the range of 0 to 255')
+            abort(400, message='brightness must be in the range of 0 to 255')
 
     def validate_arm_id(self, arm_id):
         if arm_id is None or not arm_id in range(1, 4):
