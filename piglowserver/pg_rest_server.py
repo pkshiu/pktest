@@ -6,31 +6,30 @@
     * It uses a global lock to queue up operations to the PiGlow
 """
 import threading
-import time
 
 from flask import Flask
-from flask import (render_template, request)
-from flask.ext.restful import (Resource, Api)
+from flask import request
+from flask.ext.restful import (Resource, Api, reqparse, abort)
 
 # Support a dummy PyGlow class so that we can test this code
 # on something other than a real RPi
 try:
     from PyGlow import (PyGlow, ARM_LED_LIST)
 except ImportError:
+    print 'Cannot import PyGlow library, use dummy interface for testing'
     from dummy_pyglow import (PyGlow, ARM_LED_LIST)
 
 
-pyglow = PyGlow()
-
 app = Flask(__name__)
-app.config.from_envvar('PGS_SETTINGS', silent=True)
 api = Api(app)
 
-# zero entry is not used
-led_list = [{'led_id': i, 'brightness': 0} for i in range(0, 20)]
+# internal cache of LED status
+led_list = [{'led_id': i, 'brightness': 0} for i in range(1, 19)]
 
 # global lock
 lock = threading.Lock()
+
+pyglow = PyGlow()
 
 
 # interface to the h/w layer
@@ -45,7 +44,7 @@ def set_led(num, brightness):
 
     # do this one at a time
     with lock:
-        led_list[num]['brightness'] = brightness
+        led_list[num - 1]['brightness'] = brightness
         pyglow.led(num, brightness=brightness)
 
 
@@ -61,7 +60,7 @@ def set_arm(num, brightness):
     # do this one at a time
     with lock:
         for i in ARM_LED_LIST[num - 1]:
-            led_list[i]['brightness'] = brightness
+            led_list[i - 1]['brightness'] = brightness
         pyglow.arm(num, brightness=brightness)
 
 
@@ -77,13 +76,39 @@ def set_leds(set_list):
     # do this one at a time
     with lock:
         for num, b in set_list:
-            led_list[num]['brightness'] = b
+            led_list[num - 1]['brightness'] = b
             pyglow.led(num, brightness=b)
 
 
-class LedListAPI(Resource):
+class PiGlowResourceMixin(object):
     """
-        REST interface to get the LED list.
+     Mixin provide some helper functions.
+    """
+    def validate_led_id(self, led_id):
+        if led_id is None or not led_id in range(1, 19):
+            abort(404, message='LED id must be in the range of 1 to 18')
+
+    def validate_brightness(self, b):
+        if b is None or not b in range(0, 256):
+            abort(404, message='brightness must be in the range of 0 to 255')
+
+    def validate_arm_id(self, arm_id):
+        if arm_id is None or not arm_id in range(1, 4):
+            abort(404, message='arm id must be in the range of 1 to 3')
+
+    def queue_command(self, func, *args):
+        """
+        Queue function with optional args in a separate thread.
+        """
+        h = threading.Thread(target=func, args=args)
+        h.setDaemon(True)
+        h.start()
+        return h
+
+
+class LedListAPI(PiGlowResourceMixin, Resource):
+    """
+        REST interface to the list of LED as a whole.
     """
     def get(self):
         return led_list
@@ -94,21 +119,20 @@ class LedListAPI(Resource):
         """
         print 'LedList PUT'
         print request.json
+
         set_list = []
         for d in request.json:
             n = d['led_id']
-            v = d['brightness']
-            set_list.append((n, v))
+            b = d['brightness']
+            self.validate_brightness(b)
+            self.validate_led_id(n)
+            set_list.append((n, b))
 
-        # call set_led(led_id, v) but in a separate thread
-        h = threading.Thread(target=set_leds, args=(set_list,))
-        h.setDaemon(True)
-        h.start()
-
+        self.queue_command(set_leds, set_list)
         return led_list
 
 
-class LedAPI(Resource):
+class LedAPI(PiGlowResourceMixin, Resource):
     """
         REST interface to control the LEDs.
     """
@@ -116,47 +140,57 @@ class LedAPI(Resource):
         return led_list[led_id]
 
     def put(self, led_id):
-        print 'Led PUT'
-        print request.form
-        v = request.form['brightness']
-        print 'value...', v
-        v = int(v)
 
-        # call set_led(led_id, v) but in a separate thread
-        h = threading.Thread(target=set_led, args=(led_id, v))
-        h.setDaemon(True)
-        h.start()
+        self.validate_led_id(led_id)
 
-        return led_list[led_id]
+        parser = reqparse.RequestParser()
+        parser.add_argument('brightness', type=int, help='Brightness for this arm of LED')
+        args = parser.parse_args()
+
+        b = args.get('brightness')
+        self.validate_brightness(b)
+
+        self.queue_command(set_led, led_id, b)
+        return led_list[led_id - 1]
 
 
-class ArmAPI(Resource):
+class ArmAPI(PiGlowResourceMixin, Resource):
+    """
+        Control a single arm on the PiGlow.
+        /arms/:arm_id/
+
+        The brightness value can be specified as json or form data in the request,
+        or directly on the URL.
+
+        :param arm_id: on the URL is 1 to 3
+        :param brightness: brightness=0..255
+    """
     def get(self, arm_id):
         return led_list
 
     def put(self, arm_id):
-        print 'putting ARM...'
-        print request.form
-        v = request.form['brightness']
-        print 'value...', v
-        v = int(v)
 
-        h = threading.Thread(target=set_arm, args=(arm_id, v))
-        h.setDaemon(True)
-        h.start()
+        parser = reqparse.RequestParser()
+        parser.add_argument('brightness', type=int, help='Brightness for this arm of LED')
+        args = parser.parse_args()
 
+        self.validate_arm_id(arm_id)
+
+        b = args.get('brightness')
+        self.validate_brightness(b)
+
+        self.queue_command(set_arm, arm_id, b)
         return led_list
 
-api.add_resource(LedAPI, '/leds/<int:led_id>')
+
 api.add_resource(LedListAPI, '/leds')
-
+api.add_resource(LedAPI, '/leds/<int:led_id>')
 api.add_resource(ArmAPI, '/arms/<int:arm_id>')
-# api.add_resource(LedListAPI, '/leds')
 
 
-@app.route('/')
-def show_control():
-    return render_template('control.html', led_list=led_list)
+@app.route('/', methods=['GET', ])
+def index():
+    return 'PiGlow RESTful API Server.<br />See http://github.com/pkshiu/piglowserver for info'
 
 
 if __name__ == '__main__':

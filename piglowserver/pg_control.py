@@ -1,3 +1,7 @@
+"""
+    Web server with a browser interface to control a PiGlow board
+    by talking to the PiGlow RESTful API server.
+"""
 import requests
 import json
 
@@ -14,12 +18,11 @@ ARM_LED_LIST = map(tuple, ([{'led_id': i, 'brightness': 0} for i in range(1, 7)]
                            [{'led_id': i, 'brightness': 0} for i in range(7, 13)],
                            [{'led_id': i, 'brightness': 0} for i in range(13, 19)]))
 
-PG_SERVER = 'http://192.168.2.124:5000'
-#PG_SERVER = 'http://localhost:5000'
 
 def make_url(path, *args):
     root = app.config.get('PG_SERVER', 'http://localhost:5000')
     return root + path % args
+
 
 @app.route('/', methods=['GET', ])
 def show_control():

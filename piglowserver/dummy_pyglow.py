@@ -14,8 +14,8 @@ COLOR_LED_LIST = (
 
 class PyGlow(object):
     def led(self, led_id, brightness):
-        print 'Setting LED: %d to %d' % (led_id, brightness)
+        print 'Dummy PiGlow - Setting LED: %d to %d' % (led_id, brightness)
 
     def arm(self, arm_id, brightness):
-        print 'Setting ARM: %d to %d' % (arm_id, brightness)
-        
+        print 'Dummy PiGlow - Setting ARM: %d to %d' % (arm_id, brightness)
+
