@@ -7,6 +7,8 @@ This project has two parts:
 
 2. An example web server with a simple browser interface. You can run this on the same RPi, or on a completely different computer. It will control the PiGlow via the RESTful API server above.
 
+By providing a web based API on the RPi to the PiGlow, we can move the application code to a different platform. For example your web store can use the API to send store product levels to the RPi via the web.
+
 Technical Details
 ---------------------
 
@@ -14,8 +16,8 @@ This project also serves as an example for:
 
 - running the Flask web framework on the RPi
 - designing a RESTful API
-- use thread locks to manipulate a shared resource (the PiGlow) on the RPi within a web serve environment.
-
+- use thread locks to manipulate a shared resource (the PiGlow) on the RPi within a web server environment.
+- using python unittest to test the API server
 
 
 API Usage
@@ -43,6 +45,18 @@ Example in using the API:
 
 Settings
 ------------
+
+### API Server Location
+
+By default the #web server# looks for the #API Server# at `http://localhost:5000` .
+This is useful if you are running both the web server and the API server on the
+same RPi. If you are running the web server on a different computer, you can
+setup the address by using a local configuration file:
+
+1. Create a local_config.py file
+2. set the optional environment variable #PGS_SETTINGS# to point to that file:
+` export PGS_SETTINGS=local_config.py `
+
 
 Developer Installation
 -----------------------

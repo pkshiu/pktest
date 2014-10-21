@@ -33,4 +33,4 @@ node_modules/
 # Ours
 *.sublime-*
 
-config.py
+local_config.py

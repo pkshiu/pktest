@@ -11,6 +11,9 @@ from flask import (render_template, request)
 
 app = Flask(__name__)
 app.config.from_object('config')
+# You can override config with local config file by setting PGS_SETTINGS
+app.config.from_envvar('PGS_SETTINGS', silent=True)
+print 'using API Server at: ', app.config['API_SERVER']
 
 # zero entry is not used
 led_list = [{'led_id': i, 'brightness': 0} for i in range(1, 19)]
@@ -20,7 +23,7 @@ ARM_LED_LIST = map(tuple, ([{'led_id': i, 'brightness': 0} for i in range(1, 7)]
 
 
 def make_url(path, *args):
-    root = app.config.get('PG_SERVER', 'http://localhost:5000')
+    root = app.config.get('API_SERVER', 'http://localhost:5000')
     return root + path % args
 
 
