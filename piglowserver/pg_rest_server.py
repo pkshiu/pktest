@@ -4,6 +4,10 @@
     A few interesting things about this server:
     * It is designed with a RESTful Api
     * It uses a global lock to queue up operations to the PiGlow
+
+    Run this server like this:
+
+    python pg_rest_server.py
 """
 import threading
 
@@ -14,10 +18,10 @@ from flask.ext.restful import (Resource, Api, reqparse, abort)
 # Support a dummy PyGlow class so that we can test this code
 # on something other than a real RPi
 try:
-    from PyGlow import (PyGlow, ARM_LED_LIST)
+    from PyGlow import (PyGlow, ARM_LED_LIST, COLOR_LED_LIST)
 except ImportError:
     print 'Cannot import PyGlow library, use dummy interface for testing'
-    from dummy_pyglow import (PyGlow, ARM_LED_LIST)
+    from dummy_pyglow import (PyGlow, ARM_LED_LIST, COLOR_LED_LIST)
 
 
 app = Flask(__name__)
@@ -64,6 +68,22 @@ def set_arm(num, brightness):
         pyglow.arm(num, brightness=brightness)
 
 
+def set_color(num, brightness):
+    """
+    Set one color ring of the PiGlow
+
+    :param num: is the color/ring number, from 1 to 6
+    :param brightness: is the light level, from 0-255
+    """
+    global lock
+
+    # do this one at a time
+    with lock:
+        for i in COLOR_LED_LIST[num - 1]:
+            led_list[i - 1]['brightness'] = brightness
+        pyglow.color(num, brightness=brightness)
+
+
 # interface to the h/w layer
 def set_leds(set_list):
     """
@@ -95,6 +115,10 @@ class PiGlowResourceMixin(object):
     def validate_arm_id(self, arm_id):
         if arm_id is None or not arm_id in range(1, 4):
             abort(404, message='arm id must be in the range of 1 to 3')
+
+    def validate_color_id(self, color_id):
+        if color_id is None or not color_id in range(1, 7):
+            abort(404, message='color id must be in the range of 1 to 6')
 
     def queue_command(self, func, *args):
         """
@@ -182,11 +206,39 @@ class ArmAPI(PiGlowResourceMixin, Resource):
         self.queue_command(set_arm, arm_id, b)
         return led_list
 
+class ColorAPI(PiGlowResourceMixin, Resource):
+    """
+        Control a single color ring on the PiGlow.
+        /colors/:color_id/
+
+        The brightness value can be specified as json or form data in the request,
+        or directly on the URL.
+
+        :param color_id: on the URL is 1 to 6
+        :param brightness: brightness=0..255
+    """
+    def get(self, color_id):
+        return led_list
+
+    def put(self, color_id):
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('brightness', type=int, help='Brightness for this arm of LED')
+        args = parser.parse_args()
+
+        self.validate_color_id(color_id)
+
+        b = args.get('brightness')
+        self.validate_brightness(b)
+
+        self.queue_command(set_color, color_id, b)
+        return led_list
+
 
 api.add_resource(LedListAPI, '/leds')
 api.add_resource(LedAPI, '/leds/<int:led_id>')
 api.add_resource(ArmAPI, '/arms/<int:arm_id>')
-
+api.add_resource(ColorAPI, '/colors/<int:color_id>')
 
 @app.route('/', methods=['GET', ])
 def index():

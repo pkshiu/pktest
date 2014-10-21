@@ -26,7 +26,9 @@ def make_url(path, *args):
 
 @app.route('/', methods=['GET', ])
 def show_control():
-    return render_template('control.html', led_list=led_list, arm_list=ARM_LED_LIST)
+    return render_template('control.html', led_list=led_list,
+                           arm_list=ARM_LED_LIST,
+                           api_server=make_url('/'))
 
 
 @app.route('/set_led', methods=['POST', ])
@@ -50,9 +52,13 @@ def set_leds():
     Set multiple LEDs at the same time
     """
     data = []
+    b = int(request.form.get('brightness', 0))
     for i in range(1, 19):
-        v = int(request.form.get('led_%d' % i, 0))
-        d = {'led_id': i, 'brightness': v}
+        checked = request.form.get('led_%d' % i)
+        if checked == 'on':
+            d = {'led_id': i, 'brightness': b}
+        else:
+            d = {'led_id': i, 'brightness': 0}
         data.append(d)
 
     print data
@@ -65,15 +71,39 @@ def set_leds():
 
 @app.route('/set_arms', methods=['POST', ])
 def set_arms():
-    ids = []
-    for i in range(1, 3):
-        v = request.form.get('arm_%d' % i, 0)
-        data = {'brightness': v}
+
+    b = request.form.get('brightness', 100)
+
+    for i in range(1, 4):
+        checked = request.form.get('arm_%d' % i)
+        if checked == 'on':
+            data = {'brightness': b}
+        else:
+            data = {'brightness': 0}
+
         r = requests.put(make_url('/arms/%d', i), data=data)
         print r
-        print i, v
 
     return redirect(url_for('show_control'))
+
+
+@app.route('/set_colors', methods=['POST', ])
+def set_colors():
+
+    b = request.form.get('brightness', 100)
+
+    for i in range(1, 7):
+        checked = request.form.get('color_%d' % i)
+        if checked == 'on':
+            data = {'brightness': b}
+        else:
+            data = {'brightness': 0}
+
+        r = requests.put(make_url('/colors/%d', i), data=data)
+        print r
+
+    return redirect(url_for('show_control'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
