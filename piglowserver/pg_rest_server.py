@@ -90,13 +90,13 @@ class LedListAPI(Resource):
 
     def put(self):
         """
-        Accept JSON [ {id:n, brightness:b}, ...]
+        Accept JSON [ {led_id:n, brightness:b}, ...]
         """
         print 'LedList PUT'
         print request.json
         set_list = []
         for d in request.json:
-            n = d['id']
+            n = d['led_id']
             v = d['brightness']
             set_list.append((n, v))
 

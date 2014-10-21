@@ -3,6 +3,9 @@
 
 <h1>PiGlow Control</h1>
 
+<div class="panel panel-default">
+    <div class="panel-body">
+
 <h2>Control LEDs</h2>
 <div>
 <form method="post" action="/set_leds">
@@ -23,10 +26,51 @@
 </div>
 </form>
 
+</div>
+</div> {# panel #}
 
+
+<div class="panel panel-default">
+    <div class="panel-body">
+<h2>Control Single LED</h2>
+
+<form method="post" action="/set_led">
+
+<div class="form-group">
+    <label for="led_id">LED</label>
+<select class="form-control" name="led_id">
+ {% for led in led_list %}
+  <option>{{ led.led_id }}</option>
+  {% endfor %}
+</select>
+</div>
+
+<div class="form-group">
+    <label for="brightness">Brightness</label>
+<select class="form-control" name="brightness">
+<option>0</option>
+<option>50</option>
+<option>100</option>
+<option>150</option>
+<option>200</option>
+<option>255</option>
+</select>
+</div>
+
+<div class="form-group">
+<button type="submit" class="btn btn-primary">Set LED</button>
+</div>
+</form>
+</div>
+</div> {# panel #}
+
+
+
+<div class="panel panel-default">
+    <div class="panel-body">
 <h2>Control Arms</h2>
 <form method="post" action="/set_arms">
-<div>
+
 {% for arm in [1,2,3] %}
 
     <label class="radio-inline">
@@ -40,6 +84,7 @@
 <button type="submit" class="btn btn-primary">Update LEDs</button>
 </div>
 </form>
-
+</div>
+</div> {# panel #}
 {% endblock %}
 
