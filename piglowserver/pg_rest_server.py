@@ -208,7 +208,8 @@ class LedAPI(PiGlowResourceMixin, Resource):
         self.validate_led_id(led_id)
 
         parser = reqparse.RequestParser()
-        parser.add_argument('brightness', type=int, help='Brightness for this arm of LED')
+        parser.add_argument('brightness', type=int, default=0,
+                            help='Brightness for this arm of LED')
         args = parser.parse_args()
 
         b = args.get('brightness')
@@ -235,7 +236,8 @@ class ArmAPI(PiGlowResourceMixin, Resource):
     def put(self, arm_id):
 
         parser = reqparse.RequestParser()
-        parser.add_argument('brightness', type=int, help='Brightness for this arm of LED')
+        parser.add_argument('brightness', type=int, default=0,
+                            help='Brightness for this arm of LED')
         args = parser.parse_args()
 
         self.validate_arm_id(arm_id)
@@ -245,6 +247,7 @@ class ArmAPI(PiGlowResourceMixin, Resource):
 
         self.queue_command(set_arm, arm_id, b)
         return led_list
+
 
 class ColorAPI(PiGlowResourceMixin, Resource):
     """
@@ -263,7 +266,8 @@ class ColorAPI(PiGlowResourceMixin, Resource):
     def put(self, color_id):
 
         parser = reqparse.RequestParser()
-        parser.add_argument('brightness', type=int, help='Brightness for this arm of LED')
+        parser.add_argument('brightness', type=int, default=0,
+                            help='Brightness for this arm of LED')
         args = parser.parse_args()
 
         self.validate_color_id(color_id)
@@ -288,9 +292,15 @@ class PatternAPI(PiGlowResourceMixin, Resource):
     def put(self, pattern_name):
 
         parser = reqparse.RequestParser()
-        parser.add_argument('brightness', type=int, help='Brightness for the pattern')
+        parser.add_argument('brightness', type=int, default=0,
+                            help='Brightness for the pattern')
+                            
+        parser.add_argument('speed', type=int, default=0,
+                            help='Speed for the pattern')
+        
         args = parser.parse_args()
         b = args.get('brightness')
+        print 'bbbb', b
         self.validate_brightness(b)
 
         if pattern_name == 'clear':
