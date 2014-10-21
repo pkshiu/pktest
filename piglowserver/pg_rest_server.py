@@ -8,6 +8,20 @@
     Run this server like this:
 
     python pg_rest_server.py
+
+    Example in using the API:
+
+    # set arm 3 to brightness 50
+    curl -X PUT -d brightness=50 http://localhost:5000/arms/3
+
+    # switch on and off LED 7
+    curl -X PUT -d brightness=100 http://localhost:5000/leds/7
+    curl -X PUT -d brightness=0 http://localhost:5000/leds/7
+
+    # switch on led 3 and 5 with brightness 10 and 200
+    curl -X PUT -H 'Content-Type: application/json' \
+        -d '[{"led_id":3, "brightness": 10}, {"led_id":5, "brightness":200 }]' \
+        http://localhost:5000/leds
 """
 import threading
 
@@ -82,6 +96,32 @@ def set_color(num, brightness):
         for i in COLOR_LED_LIST[num - 1]:
             led_list[i - 1]['brightness'] = brightness
         pyglow.color(num, brightness=brightness)
+
+
+def set_clear():
+    global lock
+
+    # do this one at a time
+    with lock:
+        for i in range(1, 19):
+            led_list[i - 1]['brightness'] = 0
+        pyglow.all(brightness=0)
+
+
+def set_starburst(brightness):
+    """
+    Execute starburst pattern
+    :param brightness: is the light level, from 0-255
+    """
+    global lock
+
+    # do this one at a time
+    with lock:
+        # clear first
+        pyglow.all(brightness=0)
+        for i in range(1, 7):
+            pyglow.color(i, brightness=brightness)
+            pyglow.color(i, brightness=0)
 
 
 # interface to the h/w layer
@@ -235,10 +275,36 @@ class ColorAPI(PiGlowResourceMixin, Resource):
         return led_list
 
 
+class PatternAPI(PiGlowResourceMixin, Resource):
+    """
+        This API allows display of patterns as a whole.
+        /pattern/:pattern_name/
+
+        :param brightness: brightness=0..255
+    """
+    def get(self, color_id):
+        return led_list
+
+    def put(self, pattern_name):
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('brightness', type=int, help='Brightness for the pattern')
+        args = parser.parse_args()
+        b = args.get('brightness')
+        self.validate_brightness(b)
+
+        if pattern_name == 'clear':
+            self.queue_command(set_clear)
+        if pattern_name == 'starburst':
+            self.queue_command(set_starburst, b)
+        return led_list
+
 api.add_resource(LedListAPI, '/leds')
 api.add_resource(LedAPI, '/leds/<int:led_id>')
 api.add_resource(ArmAPI, '/arms/<int:arm_id>')
 api.add_resource(ColorAPI, '/colors/<int:color_id>')
+api.add_resource(PatternAPI, '/patterns/<pattern_name>')
+
 
 @app.route('/', methods=['GET', ])
 def index():

@@ -21,3 +21,6 @@ class PyGlow(object):
 
     def color(self, color_id, brightness):
         print 'Dummy PiGlow - Setting color: %d to %d' % (color_id, brightness)
+
+    def all(self, brightness):
+        print 'Dummy PiGlow - Setting all to %d' % (brightness)
