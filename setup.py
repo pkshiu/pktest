@@ -21,5 +21,5 @@ long_description= 'A RESTful API server and a web server to control the PiGlow R
       url= 'http://www.pkshiu.com',
 classifiers = classifiers,
       py_modules= ['piglowserver'],
-install_requires= ['rpi.gpio >= 0.5.4']
+# install_requires= ['rpi.gpio >= 0.5.4']
 )
