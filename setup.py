@@ -18,9 +18,11 @@ setup(name= 'PiGlowServer',
 long_description= 'A RESTful API server and a web server to control the PiGlow Raspberry Pi Addon Board',
       license= 'MIT',
       keywords= 'Raspberry Pi PiGlow Flask Flask-restful Python RESTful',
-      url= 'http://www.pkshiu.com',
+      url= 'http://github.com/pkshiu/piglowserver',
 classifiers = classifiers,
 packages = ['piglowserver'],
+package_data = {'piglowserver': 'templates/*.html'},
 #      py_modules= ['piglowserver'],
 # install_requires= ['rpi.gpio >= 0.5.4']
+install_requires= ['requests', 'flask', 'flask-restful'],
 )
