@@ -181,9 +181,6 @@ class LedListAPI(PiGlowResourceMixin, Resource):
         """
         Accept JSON [ {led_id:n, brightness:b}, ...]
         """
-        print 'LedList PUT'
-        print request.json
-
         set_list = []
         for d in request.json:
             n = d['led_id']
@@ -300,7 +297,6 @@ class PatternAPI(PiGlowResourceMixin, Resource):
         
         args = parser.parse_args()
         b = args.get('brightness')
-        print 'bbbb', b
         self.validate_brightness(b)
 
         if pattern_name == 'clear':

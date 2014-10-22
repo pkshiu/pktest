@@ -58,7 +58,11 @@ setup the address by using a local configuration file:
 ` export PGS_SETTINGS=local_config.py `
 
 
-Developer Installation
+Installation
 -----------------------
+
+### Prerequisite
+
+
 
 LICENSE: MIT
