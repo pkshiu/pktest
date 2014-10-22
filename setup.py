@@ -11,7 +11,7 @@ classifiers = ['Development Status :: 4 - Beta',
                'Topic :: System :: Hardware']
 
 setup(name= 'PiGlowServer',
-      version= '0.5',
+      version = '0.5',
       author= 'PK Shiu',
       author_email= 'pk@pkshiu.com',
       description= 'A RESTful API server and a web server to control the PiGlow Raspberry Pi Addon Board',
