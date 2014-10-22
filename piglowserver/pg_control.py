@@ -39,12 +39,10 @@ def set_led():
     """
     Set single LED
     """
-    print request.form
     n = int(request.form.get('led_id'))
     v = request.form.get('brightness', 100)
     data = {'brightness': v}
     r = requests.put(make_url('/leds/%d', n), data=data)
-    print r
 
     return redirect(url_for('show_control'))
 
@@ -64,11 +62,8 @@ def set_leds():
             d = {'led_id': i, 'brightness': 0}
         data.append(d)
 
-    print data
     r = requests.put(make_url('/leds'), data=json.dumps(data),
                      headers={'content-type': 'application/json'})
-    print r
-
     return redirect(url_for('show_control'))
 
 
@@ -85,7 +80,6 @@ def set_arms():
             data = {'brightness': 0}
 
         r = requests.put(make_url('/arms/%d', i), data=data)
-        print r
 
     return redirect(url_for('show_control'))
 
@@ -103,10 +97,9 @@ def set_colors():
             data = {'brightness': 0}
 
         r = requests.put(make_url('/colors/%d', i), data=data)
-        print r
 
     return redirect(url_for('show_control'))
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000)
