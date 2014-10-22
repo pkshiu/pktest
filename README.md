@@ -54,9 +54,11 @@ This project does *automatically install* other python packages, __flask__ and _
 
 # Installation
 
-## Installation inside a virtualenv
+You can install __piglowserver__ inside a virtualenv or sysetm wide. I always prefer to install python software inside a __virtualenv__ to keep libraries separate. If you have virtualenv available, the piglowserver is virtualenv friendly.
 
-I always prefer to install python software inside a __virtualenv__ to keep libraries separate. If you have virtualenv available, the piglowserver is virtualenv friendly. Because the hardware interface libraries require root access to compile, it is best to link them them globally. So create your virtualenv with the *--system-site-package* argument.
+## Option 1: Installation inside a virtualenv
+
+Because the hardware interface libraries require root access to compile, it is best to link them them globally. So create your virtualenv with the *--system-site-package* argument.
 
 Once your virtualenv is created, simply use the local __pip__ command to install piglowserver locally
 
@@ -66,7 +68,7 @@ The files will go into you virtualenv's lib directory at:
 
     (your virtualenv project)lib/python2.7/site-packages/piglowserver
 
-## Intallation system wide
+## Option 2: Intallation system wide
 
 If you simply use pip to install piglowserver, you can install it into the system wide location using:
 
@@ -116,8 +118,10 @@ setup the address by using a local configuration file:
 
 1. Create a local_config.py file
 2. set the optional environment variable #PGS_SETTINGS# to point to that file:
-` export PGS_SETTINGS=local_config.py `
 
+```
+    export PGS_SETTINGS=local_config.py
+```
 
 # License
 This project is licensed under the MIT license.
